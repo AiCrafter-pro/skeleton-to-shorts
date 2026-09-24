@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>뼈대부터 짓는다</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+<script>
+  // 저장된 테마 → 없으면 시스템 설정
+  (() => { let t = null; try { t = localStorage.getItem('theme'); } catch (e) {}
+    if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = t; })();
+</script>
+<style>
+  :root {
+    --bg:#f2f0ea; --grid:#e8e5dc; --panel:#fbfaf6; --field:#ffffff; --ink:#1c1e23; --ink2:#474b54; --ink3:#747882; --line:#d8d4c9;
+    --acc:#c8452d; --acc-ink:#ffffff; --acc2:#2f6fa3; --ok:#2f7d4f; --warn:#b7791f; --shadow:0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(40,30,10,.05);
+    --mv:#f4f2ec; --log:#16181d; --logink:#c9d1d9; color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg:#101217; --grid:#161a21; --panel:#171a20; --field:#1e222a; --ink:#ebe8e2; --ink2:#c1c6cf; --ink3:#8d939e; --line:#2b3039;
+    --acc:#e0654a; --acc-ink:#ffffff; --acc2:#62a8e4; --ok:#57c487; --warn:#e0a84e; --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --mv:#1b1f26; --log:#0b0d11; --logink:#b9c2cc; color-scheme: dark;
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  html, body { margin:0; }
+  body { background:var(--bg); color:var(--ink); font:600 15.5px/1.6 "Pretendard", "Malgun Gothic", sans-serif; -webkit-font-smoothing:antialiased; transition: background .25s, color .25s;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 28px 28px; min-height:100vh; }
+  button { font:inherit; color:inherit; }
+  .wrap { max-width:1480px; margin:0 auto; padding:22px 28px 48px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:22px; }
+  .brand small { font:600 11.5px "JetBrains Mono", monospace; letter-spacing:.25em; color:var(--ink2); }
+  .brand h1 { margin:2px 0 0; font:900 38px/1.1 "Pretendard", sans-serif; letter-spacing:-.03em; letter-spacing:-.01em; }
+  .brand h1 em { font-style:normal; color:var(--acc); }
+  .hright { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .by { font-size:13px; color:var(--ink2); text-align:right; line-height:1.6; }
+  .by b { color:var(--ink); }
+  .conn { display:flex; gap:6px; }
+  .pill { display:inline-flex; align-items:center; gap:6px; font:600 11.5px "JetBrains Mono", monospace; padding:4px 9px; border-radius:999px; border:1px solid var(--line); color:var(--ink2); background:var(--panel); }
+  .pill i { width:7px; height:7px; border-radius:50%; background:var(--ink3); }
+  .pill.on i { background:var(--ok); } .pill.off i { background:var(--acc); }
+  .iconbtn { width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:var(--panel); cursor:pointer; font-size:18px; display:grid; place-items:center; }
+  .iconbtn:hover { border-color:var(--ink); }
+  .grid { display:grid; grid-template-columns: 360px minmax(0,1fr); gap:22px; }
+  @media (max-width: 1060px) { .grid { grid-template-columns: 1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:18px; box-shadow:var(--shadow); }
+  .panel + .panel { margin-top:16px; }
+  h2 { font:700 12.5px "JetBrains Mono", monospace; letter-spacing:.18em; color:var(--ink2); margin:0 0 12px; text-transform:uppercase; display:flex; justify-content:space-between; align-items:center; }
+  label.f { display:block; font-size:14px; font-weight:700; color:var(--ink2); margin:14px 0 6px; }
+  input[type=text], select, textarea { width:100%; font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:6px; background:var(--field); color:var(--ink); }
+  textarea { resize:vertical; min-height:44px; line-height:1.5; }
+  #topic { font:800 22px "Pretendard", sans-serif; padding:12px 14px; }
+  input:focus, select:focus, textarea:focus, button:focus-visible { outline:2px solid var(--acc2); outline-offset:1px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+  .chip { border:1px solid var(--line); background:var(--field); border-radius:999px; padding:4px 11px; font-size:13px; cursor:pointer; white-space:nowrap; }
+  .chip:hover { border-color:var(--ink); }
+  .row { display:flex; gap:8px; align-items:center; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .seg button { flex:1; border:0; background:var(--field); padding:9px 6px; font-size:13px; cursor:pointer; color:var(--ink2); }
+  .seg button.on { background:var(--ink); color:var(--bg); font-weight:700; }
+  .note { font-size:13.5px; color:var(--ink2); margin-top:10px; line-height:1.65; }
+  .chk { display:flex; align-items:center; gap:8px; margin-top:16px; font-size:14px; cursor:pointer; user-select:none; }
+  .chk input { width:18px; height:18px; accent-color:var(--acc); }
+  .primary { width:100%; margin-top:14px; padding:12px 14px; font:800 19px/1.25 "Pretendard", sans-serif; letter-spacing:0; display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--acc-ink); background:var(--acc); border:0; border-radius:6px; cursor:pointer; box-shadow: 0 6px 18px color-mix(in srgb, var(--acc) 35%, transparent); transition: transform .08s, filter .15s; }
+  .primary:hover { filter:brightness(1.07); } .primary:active { transform:translateY(1px); }
+  .primary:disabled { background:var(--ink3); box-shadow:none; cursor:not-allowed; }
+  .primary .gsub { font:600 12.5px/1.2 "Pretendard", sans-serif; opacity:.9; white-space:nowrap; }
+  .btn { padding:9px 14px; border:1px solid var(--line); background:var(--field); border-radius:6px; cursor:pointer; font-weight:800; font-size:14px; display:inline-flex; align-items:center; gap:6px; text-decoration:none; color:var(--ink); }
+  .btn:hover { border-color:var(--ink); } .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn.acc { background:var(--acc); color:var(--acc-ink); border-color:var(--acc); }
+  .jobs { display:flex; flex-direction:column; gap:8px; max-height:460px; overflow:auto; }
+  .job { display:flex; gap:10px; align-items:center; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--field); cursor:pointer; text-align:left; width:100%; }
+  .job.sel { border-color:var(--ink); box-shadow: inset 3px 0 0 var(--acc); }
+  .job img, .job .ph { width:40px; height:71px; object-fit:cover; border-radius:4px; background:var(--grid); flex:none; }
+  .job .t { font-weight:800; } .job .s { font-size:12px; color:var(--ink2); }
+  .empty { color:var(--ink2); font-size:14px; padding:6px 2px; }
+  /* 환영 화면 */
+  .hero h3 { font:900 30px/1.3 "Pretendard", sans-serif; margin:6px 0 8px; }
+  .hero p { color:var(--ink2); margin:0 0 18px; }
+  .flow { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:12px; }
+  @media (max-width: 700px) { .flow { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  .flow div { border-top:3px solid var(--ink); padding:10px 2px; }
+  .flow b { font:700 26px "Pretendard", sans-serif; color:var(--acc); display:block; }
+  .flow span { font-weight:700; } .flow small { display:block; color:var(--ink2); }
+  .spec { margin-top:24px; display:grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap:18px; }
+  @media (max-width: 1000px) { .spec { grid-template-columns: 1fr; } }
+  .tt { width:100%; border-collapse:collapse; font-size:13.5px; }
+  .tt th { text-align:left; color:var(--ink3); font-weight:700; font-size:12px; padding:6px 8px; border-bottom:2px solid var(--line); }
+  .tt td { padding:7px 8px; border-bottom:1px dashed var(--line); }
+  .tt td:nth-child(2) { white-space:nowrap; font-family:"JetBrains Mono", monospace; font-size:12.5px; }
+  .tt tr.hot td { background:color-mix(in srgb, var(--acc) 10%, transparent); }
+  .tt tr.sum td { font-weight:800; border-bottom:0; }
+  .gpuCard { border:1px solid var(--line); border-radius:6px; padding:12px; background:var(--field); font-size:13.5px; }
+  .gpuCard .nm { font-weight:800; font-size:15px; }
+  .gpuCard .vb { height:10px; border-radius:5px; background:var(--grid); border:1px solid var(--line); overflow:hidden; margin:8px 0 4px; }
+  .gpuCard .vb i { display:block; height:100%; background:var(--ok); transition:width .5s; }
+  .gpuCard.warn .vb i { background:var(--warn); } .gpuCard.bad .vb i { background:var(--acc); }
+  .req { margin:12px 0 0; padding-left:18px; font-size:13px; color:var(--ink2); } .req li { margin:4px 0; } .req b { color:var(--ink); }
+  .how { margin-top:22px; display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+  @media (max-width: 800px) { .how { grid-template-columns: 1fr; } }
+  .how div { border:1px dashed var(--line); border-radius:6px; padding:12px; font-size:13.5px; color:var(--ink2); }
+  .how b { color:var(--ink); }
+  .how b:first-child { display:block; margin-bottom:2px; }
+  /* 작업 상세 */
+  .jh { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+  .jh h3 { margin:2px 0 0; font:900 30px/1.2 "Pretendard", sans-serif; }
+  .meta { font-size:13.5px; color:var(--ink2); }
+  .badge { display:inline-block; font:600 12px "JetBrains Mono", monospace; padding:3px 9px; border-radius:4px; border:1px solid currentColor; }
+  .b-running, .b-queued { color:var(--acc2); } .b-done { color:var(--ok); } .b-error { color:var(--acc); } .b-review { color:var(--warn); } .b-pending { color:var(--ink2); }
+  .overall { margin-top:14px; }
+  .overall .bar { height:8px; background:var(--grid); border-radius:4px; overflow:hidden; border:1px solid var(--line); }
+  .overall .bar i { display:block; height:100%; width:0; background:linear-gradient(90deg, var(--acc2), var(--acc)); transition:width .6s; }
+  .overall .lbl { display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink2); margin-top:5px; font-family:"JetBrains Mono", monospace; }
+  .steps { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:10px; margin:16px 0 4px; }
+  @media (max-width: 1300px) { .steps { grid-template-columns:repeat(4, minmax(0,1fr)); } }
+  .st { border:1px solid var(--line); border-radius:6px; padding:10px; background:var(--field); position:relative; min-height:112px; }
+  .st .n { font:700 24px "Pretendard", sans-serif; color:var(--line); }
+  .st.running { border-color:var(--acc2); } .st.running .n { color:var(--acc2); }
+  .st.done .n { color:var(--ok); } .st.error { border-color:var(--acc); } .st.error .n { color:var(--acc); }
+  .st .nm { font-weight:800; font-size:16px; } .st .who { font-size:12.5px; color:var(--ink2); }
+  .st .nt { font-size:13px; color:var(--ink2); margin-top:4px; word-break:break-all; }
+  .st .pb { height:4px; background:var(--grid); border-radius:2px; margin-top:6px; overflow:hidden; }
+  .st .pb i { display:block; height:100%; background:var(--acc2); width:0; transition:width .4s; }
+  .st.running::after { content:""; position:absolute; top:11px; right:11px; width:9px; height:9px; border-radius:50%; background:var(--acc2); animation:pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity:.2; } }
+  .out { display:grid; grid-template-columns: minmax(0,1fr) 340px; gap:16px; margin-top:16px; }
+  @media (max-width: 1300px) { .out { grid-template-columns: 1fr; } }
+  .card { border:1px solid var(--line); border-radius:8px; padding:16px; background:var(--field); }
+  .card.review { border:2px solid var(--warn); }
+  .plan .hk { color:var(--acc); font-weight:700; } .plan .t1 { font:900 26px "Pretendard", sans-serif; }
+  .stg { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; margin:12px 0; }
+  @media (max-width: 700px) { .stg { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+  .stg > div { border-top:3px solid var(--ink); padding-top:6px; font-size:13px; } .stg b { display:block; font:700 15px "Pretendard", sans-serif; }
+  .stg .num { color:var(--acc); font:700 13px "JetBrains Mono", monospace; }
+  ol.narr { margin:6px 0 0; padding-left:20px; } ol.narr li { margin:4px 0; }
+  .rv .grid2 { display:grid; grid-template-columns: 1fr 2fr; gap:10px; }
+  .rv label { font-size:12px; color:var(--ink2); display:block; margin:10px 0 4px; }
+  .rv .stg input { margin-bottom:6px; }
+  .rv .stg .eCap { font-size:13px; padding:8px 9px; }
+  .rv .narr-edit { display:flex; flex-direction:column; gap:6px; }
+  .rv .narr-edit div { display:flex; gap:8px; align-items:flex-start; }
+  .rv .narr-edit span { font:600 12px "JetBrains Mono", monospace; color:var(--ink3); padding-top:11px; width:52px; flex:none; }
+  .rv .actions { display:flex; gap:10px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap; align-items:center; }
+  .rv .actions .cost { font-size:13px; color:var(--ink2); margin-right:auto; }
+  details { margin-top:10px; font-size:13px; color:var(--ink2); } summary { cursor:pointer; }
+  .media { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px; margin-top:14px; }
+  @media (max-width: 700px) { .media { grid-template-columns: 1fr; } }
+  .media figure { margin:0; border:1px solid var(--line); border-radius:6px; overflow:hidden; background:var(--field); }
+  .media figcaption { font-size:12px; color:var(--ink2); padding:6px 9px; border-top:1px solid var(--line); }
+  .media img, model-viewer { width:100%; aspect-ratio:1; display:block; background:var(--mv); object-fit:contain; }
+  .media .wait { aspect-ratio:1; display:grid; place-items:center; color:var(--ink3); font-size:13px; background:var(--mv); text-align:center; padding:10px; }
+  .video { border:1px solid var(--line); border-radius:8px; background:#0b0c0f; overflow:hidden; align-self:start; }
+  .video video { width:100%; aspect-ratio:9/16; display:block; background:#0b0c0f; }
+  .video .ph { aspect-ratio:9/16; display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; color:#8b919c; font-size:14px; text-align:center; padding:20px; }
+  .video .ph b { font:700 44px "Pretendard", sans-serif; color:#3a3f48; }
+  .vact { display:flex; flex-wrap:wrap; gap:8px; padding:10px; background:var(--panel); border-top:1px solid var(--line); }
+  .vact .btn { flex:1 1 auto; justify-content:center; font-size:13px; padding:8px 10px; white-space:nowrap; }
+  .vact #aBlender { flex-basis:100%; }
+  .logwrap { margin-top:16px; }
+  .log { background:var(--log); color:var(--logink); border-radius:6px; padding:12px 14px; font:12.5px/1.6 "JetBrains Mono", monospace; max-height:190px; overflow:auto; }
+  .log .tm { color:#6e7681; margin-right:8px; }
+  .err { margin-top:12px; padding:10px 12px; border:1px solid var(--acc); background:color-mix(in srgb, var(--acc) 10%, transparent); color:var(--ink); border-radius:6px; font-size:13px; white-space:pre-wrap; }
+  /* 확인 창 · 토스트 */
+  .modal { position:fixed; inset:0; background:rgba(8,9,12,.55); display:grid; place-items:center; z-index:50; padding:20px; }
+  .modal[hidden] { display:none; }
+  .modal .box { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px 24px; width:min(460px, 100%); box-shadow:0 20px 60px rgba(0,0,0,.35); }
+  .modal h4 { margin:0 0 6px; font:900 22px "Pretendard", sans-serif; }
+  .modal table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  .modal td { padding:6px 0; border-bottom:1px dashed var(--line); } .modal td:last-child { text-align:right; font-family:"JetBrains Mono", monospace; }
+  .modal tr.sum td { font-weight:700; border-bottom:0; padding-top:10px; }
+  .modal .actions { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+  .toasts { position:fixed; right:20px; bottom:20px; display:flex; flex-direction:column; gap:8px; z-index:60; }
+  .toast { background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--acc2); border-radius:6px; padding:10px 14px; box-shadow:var(--shadow); font-size:14px; max-width:360px; animation: tin .25s ease-out; }
+  .toast.ok { border-left-color:var(--ok); } .toast.err { border-left-color:var(--acc); }
+  @keyframes tin { from { opacity:0; transform:translateY(8px); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand"><small>AN ARCHITECTURAL SHORT · 30s VIDEO · 9:16</small><h1>뼈대부터 <em>짓는다</em></h1></div>
+    <div class="hright">
+      <div class="by">주제 한 줄 → <b>스케치 · 뼈대 · 모형 · 완성</b><br>기획 <b>Claude Opus 5.5</b> · 생성 <b>Higgsfield MCP</b> · 애니메이션 <b>Blender</b></div>
+      <div class="conn"><span class="pill" id="pServer"><i></i>서버</span><span class="pill" id="pHf"><i></i>Higgsfield</span><span class="pill" id="pGpu" title="렌더에 쓰는 이 PC의 GPU 메모리"><i></i>GPU</span></div>
+      <button class="iconbtn" id="theme" title="밝게/어둡게" aria-label="테마 바꾸기">☾</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <aside>
+      <div class="panel">
+        <h2>새 쇼츠</h2>
+        <input id="topic" type="text" placeholder="무엇을 지을까요? 예: 에펠탑" maxlength="40" autocomplete="off" autofocus>
+        <div class="chips" id="chips"></div>
+        <label class="f">내레이션 목소리</label>
+        <div class="row"><select id="voice"><option>불러오는 중…</option></select><button class="chip" id="vplay" title="미리 듣기">▶ 듣기</button></div>
+        <label class="f">화질</label>
+        <div class="seg" id="quality"><button data-v="final" class="on">완성 1080p</button><button data-v="preview">빠른 미리보기 720p</button></div>
+        <label class="chk"><input type="checkbox" id="reviewChk"> 기획안을 먼저 확인하고 고치기</label>
+        <button class="primary" id="go"><span>짓기 시작</span><small class="gsub">Higgsfield 35.53크레딧</small></button>
+        <div class="note" id="goNote"></div>
+      </div>
+      <div class="panel">
+        <h2>작업 목록 <span id="jcount"></span></h2>
+        <button class="btn" id="newBtn" style="width:100%;justify-content:center;margin-bottom:10px">＋ 새 쇼츠</button>
+        <div class="jobs" id="jobs"><div class="empty">아직 만든 쇼츠가 없습니다.</div></div>
+      </div>
+    </aside>
+
+    <main class="panel" id="main">
+      <section class="hero" id="welcome">
+        <small class="meta">HOW IT WORKS</small>
+        <h3>주제 하나로, 뼈대부터 완공까지</h3>
+        <p>오사카성, 마이크, 헤드셋… 무엇이든 선 스케치에서 시작해 뼈대가 올라가고, 흰 모형이 되고, 실제 재질로 완성되는 <b>30초 세로 쇼츠</b>가 됩니다. 건물인지 물건인지는 Claude가 판별해 뼈대 연출을 바꿉니다.<br><b>만드는 데는 약 20~22분</b> 걸립니다(3D 변환 약 5분 + Blender 고화질 렌더 약 14분).</p>
+        <div class="flow">
+          <div><b>01</b><span>스케치</span><small>먹선이 아래에서 위로</small></div>
+          <div><b>02</b><span>뼈대</span><small>건물은 골조(기둥·보), 물건은 골격(단면 링)</small></div>
+          <div><b>03</b><span>모형</span><small>흰 점토로 채워지고 뼈대가 사라짐</small></div>
+          <div><b>04</b><span>완성</span><small>실제 재질 · 야경</small></div>
+        </div>
+        <div class="spec">
+          <div class="specL">
+            <h2 style="margin-bottom:8px">소요 시간 (오사카성 실측)</h2>
+            <table class="tt">
+              <tr><th>단계</th><th>걸린 시간</th><th>어디서</th></tr>
+              <tr><td>기획 · Claude Opus 5.5</td><td>약 20초</td><td>Anthropic 서버</td></tr>
+              <tr><td>완성 이미지</td><td>약 30초</td><td>Higgsfield 서버</td></tr>
+              <tr><td>3D 변환 · 음성 · 음악 (동시)</td><td>약 5분</td><td>Higgsfield 서버</td></tr>
+              <tr class="hot"><td>건설 애니메이션 렌더 (1080p · 900프레임 · 고화질)</td><td>약 14분</td><td><b>이 PC · GPU</b></td></tr>
+              <tr><td>합성 (자막·음악)</td><td>약 15초</td><td>이 PC · CPU</td></tr>
+              <tr class="sum"><td>합계 → <b>30초 영상 1편</b></td><td>약 20~22분</td><td></td></tr>
+            </table>
+            <div class="note">「빠른 미리보기 720p」는 렌더가 약 2분. 렌더 없이 보려면 3D 모델이 나온 뒤 「Blender 창에서 재생」.</div>
+          </div>
+          <div class="specR">
+            <h2 style="margin-bottom:8px">필요 사양 · 이 PC</h2>
+            <div class="gpuCard" id="gpuCard">GPU 정보를 불러오는 중…</div>
+            <ul class="req">
+              <li><b>GPU(VRAM)</b>: Blender 렌더가 그래픽카드 메모리를 씁니다. 고화질 렌더 중 약 <b>1.5GB 추가</b> 사용(실측: 8GB 중 6.2GB) → 여유 VRAM <b>2GB 이상</b> 권장. 검증: RTX 2060 SUPER 8GB.</li>
+              <li>렌더 중에는 게임·다른 렌더·녹화 인코딩이 느려질 수 있습니다.</li>
+              <li>Blender 5.2, ffmpeg, Python, 로그인된 Higgsfield CLI가 필요합니다.</li>
+              <li>이미지·3D·음성·음악 생성은 <b>Higgsfield 서버</b>에서 돌아 이 PC의 GPU를 쓰지 않습니다.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="how">
+          <div><b>기획 · Claude Opus 5.5</b>제목, 단계 자막, 내레이션, 이미지 프롬프트와 사실 확인 메모</div>
+          <div><b>생성 · Higgsfield MCP</b>완성 이미지(GPT Image 2.5) → 3D 모델(image_to_3d), 내레이션(TTS), 배경음악(Sonilo Music)</div>
+          <div><b>제작 · Blender + ffmpeg (이 PC)</b>3D 모델로 건설 애니메이션을 렌더하고 자막·단계 표시·음악을 합성. 렌더는 <b>이 PC의 GPU(VRAM)</b>를 씁니다. 렌더 없이 Blender 창에서 바로 재생도 가능</div>
+        </div>
+      </section>
+
+      <section id="detail" hidden>
+        <div class="jh">
+          <div><div class="meta" id="dMeta"></div><h3 id="dTitle"></h3></div>
+          <div style="text-align:right"><span class="badge" id="dBadge"></span><div class="meta" id="dCost"></div></div>
+        </div>
+        <div class="overall"><div class="bar"><i id="oBar"></i></div><div class="lbl"><span id="oPct"></span><span id="oTime"></span></div></div>
+        <div class="steps" id="steps"></div>
+        <div id="dErr"></div>
+        <div class="out">
+          <div>
+            <div id="planBox"></div>
+            <div class="media">
+              <figure><div id="imgBox"></div><figcaption>완성 이미지 · Higgsfield GPT Image 2.5</figcaption></figure>
+              <figure><div id="mvBox"></div><figcaption>3D 모델 · 드래그해서 돌려 보기</figcaption></figure>
+            </div>
+          </div>
+          <div class="video"><div id="vBox"></div>
+            <div class="vact">
+              <button class="btn" id="aBlender" disabled title="렌더를 기다리지 않고, 열려 있는 Blender 앱에 건설 장면을 만들어 바로 재생합니다">▶ Blender 창에서 재생</button>
+              <button class="btn" id="aFolder" title="결과 폴더 열기">📂 폴더</button>
+              <a class="btn acc" id="aDown" hidden>⬇ 다운로드</a>
+            </div>
+          </div>
+        </div>
+        <details class="logwrap"><summary>진행 기록</summary><div class="log" id="log"></div></details>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal" id="confirm" hidden>
+  <div class="box" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+    <h4 id="cTitle">이대로 지을까요?</h4><div class="meta">표의 숫자는 Higgsfield 계정에서 차감되는 크레딧입니다.</div>
+    <div class="meta" id="cTopic"></div>
+    <table>
+      <tr><td>완성 이미지 · GPT Image 2.5</td><td>2.75</td></tr>
+      <tr><td>3D 모델 · image_to_3d</td><td>30.00</td></tr>
+      <tr><td>내레이션 6줄 · TTS</td><td>0.90</td></tr>
+      <tr><td>배경음악 30초 · Sonilo Music</td><td>1.88</td></tr>
+      <tr class="sum"><td>Higgsfield 크레딧 합계</td><td>약 35.53</td></tr>
+      <tr><td>기획 · Claude Opus 5.5 API <small>(Anthropic 별도, 달러)</small></td><td>약 $0.04</td></tr>
+    </table>
+    <div class="note">생성에 5~15분, 렌더에 몇 분 걸립니다. 유료 단계는 실패해도 자동으로 다시 결제하지 않습니다.</div>
+    <div class="actions"><button class="btn" id="cNo">취소</button><button class="btn acc" id="cYes">짓기 시작</button></div>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const EX = ['오사카성', '마이크', '헤드셋', '에펠탑', '경복궁 근정전', '등대', '풍차', '어쿠스틱 기타'];
+const ST = { pending: '대기', queued: '대기', running: '진행 중', done: '완료', error: '오류', review: '기획 검토' };
+const WEIGHT = { plan: 3, image: 5, model3d: 27, voice: 2, music: 2, render: 57, compose: 4 };
+const EST = { plan: 25, image: 35, model3d: 330, voice: 20, music: 60, render: 870, compose: 35 };
+let sel = null, timer = null, voices = [], audio = null, cur = null, lastKey = '', lastStatus = {};
+const opt = { quality: 'final' };
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// 테마
+function setTheme(t) { document.documentElement.dataset.theme = t; $('#theme').textContent = t === 'dark' ? '☀' : '☾'; try { localStorage.setItem('theme', t); } catch (e) {} }
+setTheme(document.documentElement.dataset.theme);
+$('#theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+
+function toast(msg, kind = '') { const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = msg; $('#toasts').append(el); setTimeout(() => el.remove(), 4200); }
+async function api(p, o) { const r = await fetch(p, o); let j = {}; try { j = await r.json(); } catch (e) {} if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status)); return j; }
+const post = (p, b = {}) => api(p, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+
+$('#chips').innerHTML = EX.map(t => `<button class="chip">${t}</button>`).join('');
+$('#chips').onclick = e => { if (e.target.classList.contains('chip')) { $('#topic').value = e.target.textContent; $('#topic').focus(); } };
+for (const id of ['quality']) $('#' + id).onclick = e => { const b = e.target.closest('button'); if (!b) return; [...$('#' + id).children].forEach(x => x.classList.toggle('on', x === b)); opt[id] = b.dataset.v; };
+
+(async () => {
+  $('#pServer').className = 'pill on';
+  try {
+    voices = await api('/api/voices'); $('#pHf').className = 'pill on';
+    $('#voice').innerHTML = voices.map(v => `<option value="${v.id}">${esc(v.name)} · ${v.gender === 'male' ? '남성' : '여성'}</option>`).join('');
+  } catch (e) { $('#pHf').className = 'pill off'; $('#voice').innerHTML = '<option value="">목소리 목록을 못 불러옴</option>'; toast('Higgsfield 연결 확인 필요: ' + e.message, 'err'); }
+})();
+$('#vplay').onclick = () => { const v = voices.find(x => x.id === $('#voice').value); if (!v?.preview) return; if (audio) audio.pause(); audio = new Audio(v.preview); audio.play(); };
+
+let pending = null;  // 확인 창에서 '짓기 시작'을 누르면 실행할 동작
+function syncGo() {
+  const rv = $('#reviewChk').checked;
+  $('#go').innerHTML = rv ? '<span>기획하기</span><small class="gsub">Claude API 약 $0.04 · Higgsfield 0</small>' : '<span>짓기 시작</span><small class="gsub">Higgsfield 35.53크레딧</small>';
+  $('#goNote').innerHTML = rv
+    ? '① Claude가 기획안을 먼저 만듭니다. Higgsfield 크레딧은 쓰지 않고 Claude API 약 $0.04만 듭니다.<br>② 기획안을 보고 고친 뒤 <b>이대로 짓기</b>를 누르면 생성이 시작됩니다.'
+    : '주제만 넣으면 기획 → 이미지 → 3D → 음성·음악 → 건설 애니메이션 → 합성까지 <b>끝까지 자동</b>으로 진행합니다.<br>비용: <b>Higgsfield 크레딧</b> 약 35.53 + <b>Claude API</b> 약 $0.04(Anthropic 별도 청구).';
+}
+$('#reviewChk').onchange = syncGo; syncGo();
+async function createJob(review) {
+  const topic = $('#topic').value.trim();
+  const r = await post('/api/jobs', { topic, voice_id: $('#voice').value, quality: opt.quality, review });
+  toast(review ? `「${topic}」 기획을 Claude에 요청했습니다` : `「${topic}」 짓기 시작! 끝까지 자동으로 진행합니다`, 'ok');
+  $('#topic').value = ''; select(r.id); loadJobs();
+}
+$('#go').onclick = async () => {
+  const topic = $('#topic').value.trim(); if (!topic) { $('#topic').focus(); toast('무엇을 지을지 입력하세요'); return; }
+  if ($('#reviewChk').checked) {
+    $('#go').disabled = true;
+    try { await createJob(true); } catch (e) { toast(e.message, 'err'); } finally { setTimeout(() => $('#go').disabled = false, 1000); }
+    return;
+  }
+  pending = () => createJob(false);
+  $('#cTopic').textContent = `「${topic}」 · ${opt.quality === 'final' ? '1080p' : '720p 미리보기'} · 기획은 Claude Opus 5.5`;
+  $('#confirm').hidden = false; $('#cYes').focus();
+};
+$('#newBtn').onclick = () => { sel = null; cur = null; clearTimeout(timer); $('#detail').hidden = true; $('#welcome').hidden = false; loadJobs(); $('#topic').focus(); };
+$('#topic').onkeydown = e => { if (e.key === 'Enter') $('#go').click(); };
+
+async function loadJobs() {
+  let js; try { js = await api('/api/jobs'); } catch (e) { $('#pServer').className = 'pill off'; return []; }
+  $('#pServer').className = 'pill on';
+  $('#jcount').textContent = js.length ? js.length + '개' : '';
+  if (js.length) $('#jobs').innerHTML = js.map(j => `<button class="job ${j.id === sel ? 'sel' : ''}" data-id="${j.id}">
+    ${j.poster ? `<img src="/files/${j.id}/${j.poster}" alt="">` : '<div class="ph"></div>'}
+    <div><div class="t">${esc(j.title || j.topic)}</div><div class="s">${ST[j.status] || j.status} · ${new Date(j.created * 1000).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · Higgsfield ${(j.credits_used || 0).toFixed(2)}</div></div></button>`).join('');
+  return js;
+}
+$('#jobs').onclick = e => { const el = e.target.closest('.job'); if (el) select(el.dataset.id); };
+
+function select(id) { sel = id; lastKey = ''; lastStatus = {}; $('#welcome').hidden = true; $('#detail').hidden = false; poll(); loadJobs(); }
+async function poll() {
+  clearTimeout(timer); if (!sel) return;
+  let s; try { s = await api('/api/jobs/' + sel); } catch (e) { timer = setTimeout(poll, 3000); return; }
+  cur = s; render(s);
+  if (['running', 'queued'].includes(s.status) || s.running) timer = setTimeout(poll, 1200);
+  else loadJobs();
+}
+const fmt = t => t < 60 ? `${Math.round(t)}초` : `${Math.floor(t / 60)}분 ${Math.round(t % 60)}초`;
+function progress(s) {
+  let got = 0, tot = 0, left = 0; const now = Date.now() / 1000;
+  for (const st of Object.values(s.steps)) {
+    const w = WEIGHT[st.key]; tot += w; let f = 0;
+    if (st.status === 'done') f = 1;
+    else if (st.status === 'running') f = st.key === 'render' ? (st.progress || 0) / 100 : Math.min(.95, (now - (st.t0 || now)) / EST[st.key]);
+    got += w * f; if (st.status !== 'done' && !['voice', 'music'].includes(st.key)) left += EST[st.key] * (1 - f);
+  }
+  return { pct: Math.round(100 * got / tot), left };
+}
+function stepStatusToasts(s) {
+  for (const st of Object.values(s.steps)) {
+    const prev = lastStatus[st.key];
+    if (prev && prev !== st.status && st.status === 'done') toast(`${st.name} 완료`, 'ok');
+    if (prev && prev !== st.status && st.status === 'error') toast(`${st.name} 오류`, 'err');
+    lastStatus[st.key] = st.status;
+  }
+  if (lastStatus.__job && lastStatus.__job !== s.status) {
+    if (s.status === 'review') toast('기획안이 나왔습니다. 확인하고 고쳐 보세요', 'ok');
+    if (s.status === 'done') toast('쇼츠 완성!', 'ok');
+  }
+  lastStatus.__job = s.status;
+}
+function render(s) {
+  stepStatusToasts(s);
+  const plan = s.assets.plan;
+  $('#dTitle').textContent = plan?.title || s.topic;
+  $('#dMeta').textContent = `주제 「${s.topic}」 · ${s.quality === 'final' ? '1080×1920' : '720×1280 미리보기'} · ${s.id}`;
+  $('#dBadge').className = 'badge b-' + s.status; $('#dBadge').textContent = ST[s.status] || s.status;
+  const u = plan?.usage; const usd = u ? (u.input * 4 + u.output * 20) / 1e6 : 0;
+  $('#dCost').innerHTML = `Higgsfield 크레딧 <b>${s.credits_used.toFixed(2)}</b> / 예상 ${s.credits_est.toFixed(2)}${u ? ` · Claude API <b>$${usd.toFixed(3)}</b>` : ''}`;
+  const pr = progress(s); $('#oBar').style.width = pr.pct + '%';
+  $('#oPct').textContent = `${pr.pct}%`;
+  const t0 = Math.min(...Object.values(s.steps).map(x => x.t0 || Infinity));
+  const tEnd = Math.max(...Object.values(s.steps).map(x => x.t1 || 0));
+  const el = isFinite(t0) ? ((s.status === 'done' ? tEnd : Date.now() / 1000) - t0) : 0;
+  $('#oTime').textContent = s.status === 'done' ? `총 ${fmt(el)}` : s.status === 'review' ? '기획안 검토 중' : (isFinite(t0) ? `경과 ${fmt(el)} · 남은 약 ${fmt(pr.left)}` : '');
+  $('#steps').innerHTML = Object.values(s.steps).map((st, i) => {
+    const t = st.t0 ? fmt((st.t1 || Date.now() / 1000) - st.t0) : '';
+    return `<div class="st ${st.status}"><div class="n">0${i + 1}</div><div class="nm">${st.name}</div><div class="who">${st.by}</div>
+      <div class="nt">${ST[st.status]}${t ? ' · ' + t : ''}${st.note && st.key !== 'plan' ? '<br>' + esc(st.note) : ''}</div>
+      ${st.key === 'render' ? `<div class="pb"><i style="width:${st.progress || 0}%"></i></div>` : ''}</div>`;
+  }).join('');
+  $('#dErr').innerHTML = s.status === 'error' ? `<div class="err">${esc(s.error)}</div><div style="margin-top:8px"><button class="btn" id="resume">↻ 실패한 단계부터 이어서 진행</button> <span class="meta">이미 결과가 있는 유료 단계는 다시 결제하지 않습니다.</span></div>` : '';
+  if ($('#resume')) $('#resume').onclick = async () => { try { await post(`/api/jobs/${s.id}/resume`); toast('이어서 진행합니다'); poll(); } catch (e) { toast(e.message, 'err'); } };
+
+  const key = JSON.stringify([s.status, !!plan, s.assets.image, s.assets.model, s.assets.final]);
+  if (key === lastKey) { $('#log').innerHTML = logHtml(s); return; }
+  lastKey = key;
+  $('#planBox').innerHTML = s.status === 'review' ? reviewHtml(plan) : planHtml(plan);
+  if (s.status === 'review') bindReview(s);
+  $('#imgBox').innerHTML = s.assets.image ? `<img src="/files/${s.id}/${s.assets.image}" alt="완성 이미지">` : `<div class="wait">${s.status === 'review' ? '기획 승인 후 생성됩니다' : '생성 대기'}</div>`;
+  $('#mvBox').innerHTML = s.assets.model ? `<model-viewer src="/files/${s.id}/${s.assets.model}" camera-controls auto-rotate shadow-intensity="0.7" exposure="1.05" camera-orbit="30deg 72deg 105%" field-of-view="24deg" alt="3D 모델"></model-viewer>` : `<div class="wait">3D 모델은 5~15분 걸립니다</div>`;
+  $('#vBox').innerHTML = s.assets.final
+    ? `<video src="/files/${s.id}/final.mp4" controls playsinline poster="/files/${s.id}/poster.jpg"></video>`
+    : `<div class="ph"><b>9:16</b>완성 영상이 여기에 나옵니다<br><small>렌더 없이 보려면 3D 모델이 나온 뒤<br>「Blender 창에서 재생」을 누르세요</small></div>`;
+  $('#aBlender').disabled = !s.assets.model;
+  $('#aDown').hidden = !s.assets.final;
+  if (s.assets.final) { $('#aDown').href = `/files/${s.id}/final.mp4`; $('#aDown').download = `${plan?.title || s.topic}.mp4`; }
+  $('#log').innerHTML = logHtml(s);
+}
+const logHtml = s => s.log.slice(-80).map(([t, m]) => `<div><span class="tm">${t}</span>${esc(m)}</div>`).join('');
+function planHtml(plan) {
+  if (!plan) return `<div class="card"><div class="empty">Claude Opus 5.5가 기획하는 중…</div></div>`;
+  return `<div class="card plan"><div class="hk">${esc(plan.hook)}</div><div class="t1">${esc(plan.title)}</div>
+    <div class="stg">${plan.stages.map((x, i) => `<div><span class="num">0${i + 1}</span><b>${esc(x.label)}</b>${esc(x.caption)}</div>`).join('')}</div>
+    <h2 style="margin:6px 0 0">내레이션 · Claude Opus 5.5</h2><ol class="narr">${plan.narration.map(l => `<li>${esc(l)}</li>`).join('')}<li>${esc(plan.outro)}</li></ol>
+    <details><summary>사실 확인 메모 (${plan.fact_notes.length})</summary><ul>${plan.fact_notes.map(f => `<li>${esc(f)}</li>`).join('')}</ul></details></div>`;
+}
+function reviewHtml(plan) {
+  const lbl = ['도입', '스케치', '골조', '모형', '완공'];
+  return `<div class="card review rv"><h2 style="margin:0">기획안 검토 · 고칠 곳이 있으면 바로 고치세요</h2>
+    <div class="grid2"><div><label>훅 (제목 위 작은 글씨)</label><input type="text" id="eHook" maxlength="24" value="${esc(plan.hook)}"></div>
+      <div><label>제목</label><input type="text" id="eTitle" maxlength="16" value="${esc(plan.title)}"></div></div>
+    <label>단계 이름 · 설명</label>
+    <div class="stg">${plan.stages.map((x, i) => `<div><span class="num">0${i + 1}</span><input type="text" class="eLab" maxlength="8" value="${esc(x.label)}"><input type="text" class="eCap" maxlength="24" value="${esc(x.caption)}"></div>`).join('')}</div>
+    <label>내레이션 (각 단계 시작에 맞춰 읽습니다)</label>
+    <div class="narr-edit">${plan.narration.map((l, i) => `<div><span>${lbl[i]}</span><textarea class="eNarr" rows="1" maxlength="60">${esc(l)}</textarea></div>`).join('')}
+      <div><span>엔딩</span><textarea id="eOutro" rows="1" maxlength="30">${esc(plan.outro)}</textarea></div></div>
+    <details><summary>Claude의 사실 확인 메모 (${plan.fact_notes.length})</summary><ul>${plan.fact_notes.map(f => `<li>${esc(f)}</li>`).join('')}</ul></details>
+    <div class="actions"><span class="cost">Higgsfield 크레딧 예상 <b>약 35.53</b></span>
+      <button class="btn" id="rReplan">↻ 다시 기획</button><button class="btn acc" id="rGo">이대로 짓기</button></div></div>`;
+}
+function bindReview(s) {
+  $('#rReplan').onclick = async () => { try { await post(`/api/jobs/${s.id}/replan`); toast('Claude에 다시 기획을 요청했습니다'); lastKey = ''; poll(); } catch (e) { toast(e.message, 'err'); } };
+  $('#rGo').onclick = () => { pending = approveCurrent; $('#cTopic').textContent = `「${$('#eTitle').value}」 · ${s.quality === 'final' ? '1080p' : '720p 미리보기'}`; $('#confirm').hidden = false; $('#cYes').focus(); };
+}
+$('#cNo').onclick = () => $('#confirm').hidden = true;
+$('#confirm').onclick = e => { if (e.target.id === 'confirm') $('#confirm').hidden = true; };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#confirm').hidden = true; });
+async function approveCurrent() {
+  const edits = { hook: $('#eHook').value, title: $('#eTitle').value, outro: $('#eOutro').value,
+    narration: [...document.querySelectorAll('.eNarr')].map(x => x.value),
+    stages: [...document.querySelectorAll('.eLab')].map((x, i) => ({ label: x.value, caption: document.querySelectorAll('.eCap')[i].value })) };
+  await post(`/api/jobs/${cur.id}/approve`, edits); toast('짓기 시작! 진행 상황이 위에 표시됩니다', 'ok'); lastKey = ''; poll();
+}
+$('#cYes').onclick = async () => {
+  if (!pending) { $('#confirm').hidden = true; return; }
+  $('#cYes').disabled = true;
+  try { await pending(); $('#confirm').hidden = true; pending = null; }
+  catch (e) { toast(e.message, 'err'); } finally { $('#cYes').disabled = false; }
+};
+$('#aBlender').onclick = async () => {
+  const b = $('#aBlender'); b.disabled = true; const t = b.textContent; b.textContent = 'Blender에 장면 만드는 중…';
+  try { const r = await post(`/api/jobs/${cur.id}/blender`); toast(r.focused ? `Blender 창으로 전환 · 씬 「${r.scene}」 재생 중` : `Blender 앱에서 씬 「${r.scene}」 재생 중 — Blender 창을 확인하세요`, 'ok'); }
+  catch (e) { toast(e.message, 'err'); } finally { b.textContent = t; b.disabled = false; }
+};
+$('#aFolder').onclick = async () => { try { await post(`/api/jobs/${cur.id}/folder`); } catch (e) { toast(e.message, 'err'); } };
+
+async function sysInfo() {
+  let r; try { r = await api('/api/system'); } catch (e) { return; }
+  const g = r.gpu, pill = $('#pGpu'), card = $('#gpuCard');
+  if (!g) { pill.className = 'pill'; pill.lastChild.textContent = 'GPU 정보 없음'; card.textContent = 'nvidia-smi로 GPU를 확인하지 못했습니다. 렌더는 CPU로 느리게 돌 수 있습니다.'; return; }
+  const free = (g.total - g.used) / 1024, pct = Math.round(100 * g.used / g.total);
+  const lvl = free < 1 ? 'bad' : free < 2 ? 'warn' : '';
+  pill.className = 'pill ' + (lvl === 'bad' ? 'off' : 'on');
+  pill.lastChild.textContent = `VRAM ${(g.used / 1024).toFixed(1)}/${(g.total / 1024).toFixed(0)}GB`;
+  card.className = 'gpuCard ' + lvl;
+  card.innerHTML = `<div class="nm">${esc(g.name)}</div><div class="vb"><i style="width:${pct}%"></i></div>
+    <div class="meta">VRAM 사용 ${(g.used / 1024).toFixed(1)}GB / ${(g.total / 1024).toFixed(0)}GB · 여유 <b>${free.toFixed(1)}GB</b> · GPU 사용률 ${g.util}%${r.rendering ? ' · <b>지금 렌더 중</b>' : ''}</div>
+    <div class="meta" style="margin-top:4px">${lvl === 'bad' ? '⚠ 여유 VRAM이 부족합니다. 다른 GPU 프로그램을 닫고 렌더하세요.' : lvl === 'warn' ? '여유 VRAM이 빠듯합니다. 렌더가 느려질 수 있습니다.' : '렌더하기에 충분합니다.'}</div>`;
+}
+sysInfo(); setInterval(sysInfo, 5000);
+loadJobs();
+setInterval(() => { if (!sel || !cur || !['running', 'queued'].includes(cur.status)) loadJobs(); }, 15000);
+</script>
+</body>
+</html>
