@@ -78,4 +78,8 @@ python check_setup.py          # 필수 준비물 점검 (키 값은 출력하�
 ## 라이선스
 코드: [MIT](LICENSE) · 폰트: Pretendard ([SIL OFL 1.1](app/fonts/OFL-Pretendard.txt))
 
-만든 곳: **AiCrafter** — Claude Opus 5.5 × Higgsfield MCP 캠페인 영상에서 소개한 도구입니다.
+## 만든 곳 · 문의
+**AiCrafter** — Claude Opus 5.5 × Higgsfield MCP 영상에서 소개한 도구입니다.
+
+- 📺 유튜브 채널 **AI크래프터**: https://www.youtube.com/@Aicrafter-pro
+- 💬 궁금한 점은 **AI크래프터 오픈톡방**으로: https://open.kakao.com/o/pWyXqthi
